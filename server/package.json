@@ -1,0 +1,33 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "glob": "^7.1.6",
+    "koa": "^2.11.0",
+    "koa-body": "^4.1.1",
+    "koa-log4": "^2.3.2",
+    "koa-logger": "^3.2.1",
+    "koa-mysql-session": "0.0.2",
+    "koa-redis": "^4.0.1",
+    "koa-router": "^8.0.8",
+    "koa-session-minimal": "^3.0.4",
+    "koa-static-cache": "^5.1.2",
+    "koa2-cors": "^2.0.6",
+    "mongoose": "^5.9.5",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "babel-register": "^6.26.0"
+  },
+  "scripts": {
+    "dev": "supervisor --harmony app.js",
+    "start": "pm2 start app.js",
+    "stop": "pm2 stop all"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
