@@ -44,7 +44,7 @@ router.post('/login', async ctx => {
             //     status: 0,
             //     message: '用户不存在，请先注册。'
             // }
-            ctx.sendError(0, '用户不存在，请先注册。');
+            ctx.sendError(50008, '用户不存在，请先注册。');
             return
         }
         if (result[0].password === password) {
@@ -71,4 +71,18 @@ router.post('/login', async ctx => {
     })
 })
 
+// 获取用户信息
+router.get('/info', ctx => {
+  ctx.send({
+    roles: ['Qin'],
+    introduction: 'I am a super administrator',
+    avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+    name: 'Super Qin'
+  }, '获取用户数据成功')
+})
+
+// 退出
+router.post('/logout', ctx => {
+  ctx.send(20000, '退出成功')
+})
 module.exports = router

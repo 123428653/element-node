@@ -1,5 +1,6 @@
 const verifyToken = (ctx, next) => {
   return next().catch(err => {
+    console.log(err, '验证Token合法性')
     if (err.status === 401) {
       ctx.status = 401;
       return ctx.sendError(0, 'Token失效，拒绝访问')
