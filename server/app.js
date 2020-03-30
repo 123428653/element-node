@@ -2,58 +2,31 @@ const Koa = require('koa')
 var path = require('path')
 var staticCache = require('koa-static-cache')
 var koaBody = require('koa-body')
-const session = require('koa-session-minimal')  // session回话（cookie标识）
-const MysqlStore = require('koa-mysql-session') // 存入mysql中
+// const session = require('koa-session-minimal')  // session回话（cookie标识）
+// const MysqlStore = require('koa-mysql-session') // 存入mysql中
 const cors = require('koa2-cors') // 解决跨域问题
-const Router = require('koa-router')
+const router = require('koa-router')()
 const config = require('./config')
 const {logger, errLogger} = require('./middleware/log') // 日志
+const sendHandle = require('./middleware/sendHandle')
+const verifyToken = require('./middleware/verifyToken')
+const koajwt = require('koa-jwt')
 // let home = require('./api/home')
 let user = require('./api/user')
-/* Mongodb start */
-// let { connect, initSchemas } = require('./lib/mongoDB')
-// const mongoose = require('mongoose')
-/* Mongodb end */
 const app = new Koa()
 
-/* Mongodb start */
-// ;(async() => {
-//   // 链接数据库
-//   await connect()
-
-//   // 创建Schema/发布模型
-//   initSchemas()
-
-//   // 获取模型，操作模型
-//   // const Home2 = mongoose.model('Home')
-//   // // await Home2.find().sort({title: 1}).exec().then(res => {
-//   // //   console.log(res, 111)
-//   // // })
-//   // let oneHome = new Home2({
-//   //   title: '吃饭睡觉打豆豆~',
-//   //   isComplete: true
-//   // })
-
-//   // // 插入数据
-//   // oneHome.save().then(() => {
-//   //   console.log('插入成功')
-//   // })
-// })()
-/* Mongodb end */
-
 // 模块化路由
-let router = new Router()
 // router.use('/home', home.routes())  // home模块
-router.use('/user', user.routes())  // home模块
+router.use('/api/user', user.routes())  // user模块
 
 
 // 获取数据库登录信息，方便存储seesion
-let sessionMysqlConfig = {
-  user: config.database.username,
-  password: config.database.password,
-  database: config.database.database,
-  host: config.database.host
-}
+// let sessionMysqlConfig = {
+//   user: config.database.username,
+//   password: config.database.password,
+//   database: config.database.database,
+//   host: config.database.host
+// }
 
 // koa-session-minimal需要一个options对象参数：
 /***
@@ -62,10 +35,10 @@ let sessionMysqlConfig = {
    cookie：cookie选项，可以是对象（静态cookie选项）或返回对象的函数（动态cookie选项）参数为ctx对象。
    只有maxAge，path，domain，secure，httpOnly是支持的。
  */
-app.use(session({
-  key: 'SID',
-  store: new MysqlStore(sessionMysqlConfig)
-}))
+// app.use(session({
+//   key: 'SID',
+//   store: new MysqlStore(sessionMysqlConfig)
+// }))
 
 // 设置静态资源目录
 app.use(staticCache(path.join(__dirname, 'public'), {
@@ -105,6 +78,14 @@ app.use(koaBody({
   credentials: true,
   allowMethods: ['GET', 'POST', 'DELETE'],
   allowHeaders: ['Content-Type', 'Authorization', 'Accept']
+}))
+.use(sendHandle())
+.use(verifyToken)
+.use(koajwt({
+  secret: 'log_token'
+}).unless({
+  // 设置不需要验证token的白名单
+  path: [/\/user\/register/, /\/user\/login/]
 }))
 .use(logger)
 .use(router.routes())

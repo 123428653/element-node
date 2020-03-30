@@ -4,7 +4,7 @@ const config = {
   database: {
     database: 'vpn_admin_log',
     username: 'root',
-    password: '',
+    password: '123456',
     port: '3306',
     host: 'localhost'
   }
