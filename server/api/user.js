@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken')
 
 // 注册
 router.post('/register', async ctx => {
-    let { userName, password } = ctx.request.body
+    let { username, password } = ctx.request.body
     let len = 0
-    await model.findUserSql(userName).then(result => {
+    await model.findUserSql(username).then(result => {
         console.log(result, 888)
         len = result.length
     })
@@ -16,7 +16,7 @@ router.post('/register', async ctx => {
         let y = d.getFullYear()
         let m = d.getMonth() + 1
         let date = d.getDate()
-        await model.insertUserSql([userName, md5(password), `${y}-${m}-${date}`]).then((a) => {
+        await model.insertUserSql([username, md5(password), `${y}-${m}-${date}`]).then((a) => {
             console.log(a, 77)
             // ctx.body = {
             //     status: 200,
@@ -35,9 +35,9 @@ router.post('/register', async ctx => {
 
 // 登录
 router.post('/login', async ctx => {
-    let {userName, password} = ctx.request.body
+    let {username, password} = ctx.request.body
     password = md5(password)
-    await model.findUserSql(userName).then(result => {
+    await model.findUserSql(username).then(result => {
         console.log(result, '登录')
         if (!result.length) {
             // ctx.body = {
@@ -49,7 +49,7 @@ router.post('/login', async ctx => {
         }
         if (result[0].password === password) {
             const token = jwt.sign({
-                userName,
+                username,
                 password
             },'log_token', {expiresIn: '1h'});
             // ctx.body = {

@@ -78,7 +78,7 @@ let list =
 let users =
   `create table if not exists users(
    id INT NOT NULL AUTO_INCREMENT,
-   userName VARCHAR(100) NOT NULL COMMENT '用户名',
+   username VARCHAR(100) NOT NULL COMMENT '用户名',
    password VARCHAR(100) NOT NULL COMMENT '密码',
    createTime VARCHAR(100) NOT NULL COMMENT '注册时间',
    PRIMARY KEY ( id )
