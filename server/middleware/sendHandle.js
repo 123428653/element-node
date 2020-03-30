@@ -4,7 +4,7 @@ const sendHandle = () => {
     return (data, message = 'success') => {
       ctx.set('Content-Type', 'application/json');
       ctx.body = {
-        status: 200,
+        code: 20000,
         message,
         data
       }
@@ -13,10 +13,10 @@ const sendHandle = () => {
 
   // 处理失败方法
   const renderError = ctx => {
-    return (status, message = 'error') => {
+    return (code, message = 'error') => {
       ctx.set('Content-Type', 'application/json');
       ctx.body = {
-        status,
+        code,
         message,
         data: null
       }
