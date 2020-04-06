@@ -37,8 +37,8 @@ module.exports = {
       errors: true
     },
     proxy: { // 配置多个代理
-      '/api': {
-        target: 'http://localhost:3001',
+      [process.env.VUE_APP_BASE_API]: {
+        target: 'http://localhost:3000',
         changeOrigin: true,
         ws: true
       }

@@ -37,6 +37,7 @@ router.post('/register', async ctx => {
 router.post('/login', async ctx => {
     let {username, password} = ctx.request.body
     password = md5(password)
+    console.log(password, 888);
     await model.findUserSql(username).then(result => {
         console.log(result, '登录')
         if (!result.length) {
@@ -74,7 +75,7 @@ router.post('/login', async ctx => {
 // 获取用户信息
 router.get('/info', ctx => {
   ctx.send({
-    roles: ['Qin'],
+    roles: 'admin',
     introduction: 'I am a super administrator',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
     name: 'Super Qin'
