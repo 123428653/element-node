@@ -38,7 +38,7 @@ module.exports = {
     },
     proxy: { // 配置多个代理
       [process.env.VUE_APP_BASE_API]: {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3008',
         changeOrigin: true,
         ws: true
       }

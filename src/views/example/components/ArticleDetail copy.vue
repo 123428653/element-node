@@ -7,10 +7,10 @@
         <PlatformDropdown v-model="postForm.platforms" />
         <SourceUrlDropdown v-model="postForm.source_uri" />
         <el-button v-loading="loading" style="margin-left: 10px;" type="success" @click="submitForm">
-          发布
+          Publish
         </el-button>
         <el-button v-loading="loading" type="warning" @click="draftForm">
-          存稿
+          Draft
         </el-button>
       </sticky>
 
@@ -21,56 +21,36 @@
           <el-col :span="24">
             <el-form-item style="margin-bottom: 40px;" prop="title">
               <MDinput v-model="postForm.title" :maxlength="100" name="name" required>
-                标题
+                Title
               </MDinput>
             </el-form-item>
 
             <div class="postInfo-container">
               <el-row>
-                <el-col :span="6">
-                  <el-form-item label-width="60px" label="作者:" prop="author" class="postInfo-container-item">
-                    <el-input v-model="postForm.author" :disabled="true" />
-                    <!-- <el-select v-model="postForm.author" :remote-method="getRemoteUserList" filterable default-first-option remote placeholder="Search user">
+                <el-col :span="8">
+                  <el-form-item label-width="60px" label="Author:" class="postInfo-container-item">
+                    <el-select v-model="postForm.author" :remote-method="getRemoteUserList" filterable default-first-option remote placeholder="Search user">
                       <el-option v-for="(item,index) in userListOptions" :key="item+index" :label="item" :value="item" />
-                    </el-select> -->
+                    </el-select>
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="9">
-                  <el-form-item label-width="120px" label="创建时间:" prop="createTime" class="postInfo-container-item">
-                    <el-date-picker v-model="postForm.createTime" type="datetime" format="yyyy-MM-dd HH:mm:ss" placeholder="Select date and time" />
+                <el-col :span="10">
+                  <el-form-item label-width="120px" label="Publish Time:" class="postInfo-container-item">
+                    <el-date-picker v-model="displayTime" type="datetime" format="yyyy-MM-dd HH:mm:ss" placeholder="Select date and time" />
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="9">
-                  <el-form-item label-width="90px" label="标签:" prop="tags" class="postInfo-container-item">
-                    <el-tag
-                      v-for="tag in tagArr"
-                      :key="`item_${tag}`"
-                      closable
-                      :disable-transitions="false"
-                      @close="handleClose(tag)"
-                    >
-                      {{ tag }}
-                    </el-tag>
-                    <el-input
-                      v-if="inputVisible"
-                      ref="saveTagInput"
-                      v-model="inputValue"
-                      class="input-new-tag"
-                      size="small"
-                      @keyup.enter.native="handleInputConfirm"
-                      @blur="handleInputConfirm"
-                    />
-                    <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
-                    <!-- <el-rate
+                <el-col :span="6">
+                  <el-form-item label-width="90px" label="Importance:" class="postInfo-container-item">
+                    <el-rate
                       v-model="postForm.importance"
                       :max="3"
                       :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
                       :low-threshold="1"
                       :high-threshold="3"
                       style="display:inline-block"
-                    /> -->
+                    />
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -78,8 +58,8 @@
           </el-col>
         </el-row>
 
-        <el-form-item style="margin-bottom: 40px;" label-width="60px" prop="subtitle" label="摘要:">
-          <el-input v-model="postForm.subtitle" :rows="1" type="textarea" class="article-textarea" autosize placeholder="Please enter the content" />
+        <el-form-item style="margin-bottom: 40px;" label-width="70px" label="Summary:">
+          <el-input v-model="postForm.content_short" :rows="1" type="textarea" class="article-textarea" autosize placeholder="Please enter the content" />
           <span v-show="contentShortLength" class="word-counter">{{ contentShortLength }}words</span>
         </el-form-item>
 
@@ -87,8 +67,8 @@
           <Tinymce ref="editor" v-model="postForm.content" :height="400" />
         </el-form-item>
 
-        <el-form-item style="margin-bottom: 30px;">
-          <Upload v-model="postForm.thumbnail" />
+        <el-form-item prop="image_uri" style="margin-bottom: 30px;">
+          <Upload v-model="postForm.image_uri" />
         </el-form-item>
       </div>
     </el-form>
@@ -101,7 +81,7 @@ import Upload from '@/components/Upload/SingleImage3'
 import MDinput from '@/components/MDinput'
 import Sticky from '@/components/Sticky' // 粘性header组件
 import { validURL } from '@/utils/validate'
-import { fetchArticle, crtArticle } from '@/api/article'
+import { fetchArticle } from '@/api/article'
 import { searchUser } from '@/api/remote-search'
 import Warning from './Warning'
 import { CommentDropdown, PlatformDropdown, SourceUrlDropdown } from './Dropdown'
@@ -109,17 +89,15 @@ import { CommentDropdown, PlatformDropdown, SourceUrlDropdown } from './Dropdown
 const defaultForm = {
   status: 'draft',
   title: '', // 文章题目
-  author: 'Qin', // 文章作者
-  createTime: null, // 前台展示时间
-  tags: '',
   content: '', // 文章内容
-  subtitle: '', // 文章摘要
+  content_short: '', // 文章摘要
   source_uri: '', // 文章外链
-  thumbnail: '', // 文章图片
-  id: undefined
-  // platforms: ['a-platform'],
-  // comment_disabled: false,
-  // importance: 0
+  image_uri: '', // 文章图片
+  display_time: undefined, // 前台展示时间
+  id: undefined,
+  platforms: ['a-platform'],
+  comment_disabled: false,
+  importance: 0
 }
 
 export default {
@@ -134,7 +112,11 @@ export default {
   data() {
     const validateRequire = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('标题不能为空'))
+        this.$message({
+          message: rule.field + '为必传项',
+          type: 'error'
+        })
+        callback(new Error(rule.field + '为必传项'))
       } else {
         callback()
       }
@@ -154,32 +136,14 @@ export default {
         callback()
       }
     }
-    const validateTags = (rule, value, callback) => {
-      if (!value) {
-        // this.$message({
-        //   message: '为必传项',
-        //   type: 'error'
-        // })
-        callback(new Error('至少添加一个标签'))
-      } else {
-        callback()
-      }
-    }
     return {
       postForm: Object.assign({}, defaultForm),
       loading: false,
-      inputVisible: false,
-      inputValue: '',
-      tagArr: [], // 用于显示
       userListOptions: [],
       rules: {
+        image_uri: [{ validator: validateRequire }],
         title: [{ validator: validateRequire }],
-        author: [{ required: true, message: '请输入作者名字', trigger: 'blur' }],
-        createTime: [{ type: 'date', required: true, message: '请选择创建日期', trigger: 'change' }],
-        tags: [{ validator: validateTags }],
-        subtitle: [{ required: true, message: '请输入摘要', trigger: 'blur' }],
-        // thumbnail: [{ validator: validateRequire }],
-        content: [{ validator: validateRequire, trigger: 'blur' }],
+        content: [{ validator: validateRequire }],
         source_uri: [{ validator: validateSourceUri, trigger: 'blur' }]
       },
       tempRoute: {}
@@ -187,7 +151,7 @@ export default {
   },
   computed: {
     contentShortLength() {
-      return this.postForm.subtitle.length
+      return this.postForm.content_short.length
     },
     displayTime: {
       // set and get is useful when the data
@@ -195,17 +159,11 @@ export default {
       // back end return => "2013-06-25 06:59:25"
       // front end need timestamp => 1372114765000
       get() {
-        return (+new Date(this.postForm.createTime))
+        return (+new Date(this.postForm.display_time))
       },
       set(val) {
-        this.postForm.createTime = new Date(val)
+        this.postForm.display_time = new Date(val)
       }
-    }
-  },
-  watch: {
-    tagArr(newVal) {
-      const arr = newVal
-      this.postForm.tags = arr.toString()
     }
   },
   created() {
@@ -220,31 +178,13 @@ export default {
     this.tempRoute = Object.assign({}, this.$route)
   },
   methods: {
-    handleClose(tag) {
-      this.tagArr.splice(this.tagArr.indexOf(tag), 1)
-    },
-
-    showInput() {
-      this.inputVisible = true
-      this.$nextTick(_ => {
-        this.$refs.saveTagInput.$refs.input.focus()
-      })
-    },
-    handleInputConfirm() {
-      const inputValue = this.inputValue
-      if (inputValue) {
-        this.tagArr.push(inputValue)
-      }
-      this.inputVisible = false
-      this.inputValue = ''
-    },
     fetchData(id) {
       fetchArticle(id).then(response => {
         this.postForm = response.data
 
         // just for test
         this.postForm.title += `   Article Id:${this.postForm.id}`
-        this.postForm.subtitle += `   Article Id:${this.postForm.id}`
+        this.postForm.content_short += `   Article Id:${this.postForm.id}`
 
         // set tagsview title
         this.setTagsViewTitle()
@@ -277,16 +217,10 @@ export default {
           })
           this.postForm.status = 'published'
           this.loading = false
-          this.sendAdd()
         } else {
           console.log('error submit!!')
           return false
         }
-      })
-    },
-    sendAdd() {
-      crtArticle(this.postForm).then(res => {
-        console.log(res, 666)
       })
     },
     draftForm() {
@@ -317,21 +251,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "~@/styles/mixin.scss";
-.el-tag + .el-tag {
-  margin-left: 10px;
-}
-.button-new-tag {
-  margin-left: 10px;
-  height: 32px;
-  line-height: 30px;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.input-new-tag {
-  width: 90px;
-  margin-left: 10px;
-  vertical-align: bottom;
-}
+
 .createPost-container {
   position: relative;
 

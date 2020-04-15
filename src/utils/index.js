@@ -93,7 +93,20 @@ export function formatTime(time, option) {
     )
   }
 }
+export function fromatDate(time) {
+  var nd = time ? new Date(time) : new Date()
+  var y = nd.getFullYear()
+  var m = _pad(nd.getMonth() + 1)
+  var d = _pad(nd.getDate())
+  var h = _pad(nd.getHours())
+  var min = _pad(nd.getMinutes())
+  var s = _pad(nd.getSeconds())
 
+  function _pad(t) {
+    return t.toString().padStart(2, '0')
+  }
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
+}
 /**
  * @param {string} url
  * @returns {Object}

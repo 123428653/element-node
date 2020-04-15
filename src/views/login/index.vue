@@ -76,6 +76,7 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import SocialSign from './components/SocialSignin'
+// import axios from 'axios'
 
 export default {
   name: 'Login',
@@ -156,6 +157,15 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
+          // axios({
+          //   url: '/api/admin/register',
+          //   method: 'post',
+          //   data: this.loginForm
+          // }).then(res => {
+          //   console.log(res.data)
+          //   this.$message(res.data.message)
+          //   this.loading = false
+          // })
           this.$store.dispatch('user/login', this.loginForm)
             .then(() => {
               this.$router.push({ path: this.redirect || '/', query: this.otherQuery })

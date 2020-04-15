@@ -8,6 +8,14 @@ export function fetchList(query) {
   })
 }
 
+export function articleList(query) {
+  return request({
+    url: '/admin/article/list',
+    method: 'get',
+    params: query
+  })
+}
+
 export function fetchArticle(id) {
   return request({
     url: '/vue-element-admin/article/detail',
@@ -27,6 +35,14 @@ export function fetchPv(pv) {
 export function createArticle(data) {
   return request({
     url: '/vue-element-admin/article/create',
+    method: 'post',
+    data
+  })
+}
+
+export function crtArticle(data) {
+  return request({
+    url: '/admin/article/create',
     method: 'post',
     data
   })
