@@ -38,7 +38,7 @@
 
                 <el-col :span="9">
                   <el-form-item label-width="120px" label="创建时间:" prop="createTime" class="postInfo-container-item">
-                    <el-date-picker v-model="postForm.createTime" type="datetime" format="yyyy-MM-dd HH:mm:ss" placeholder="Select date and time" />
+                    <el-date-picker v-model="displayTime" type="datetime" format="yyyy-MM-dd HH:mm:ss" placeholder="Select date and time" @change="changeTime" />
                   </el-form-item>
                 </el-col>
 
@@ -84,7 +84,16 @@
         </el-form-item>
 
         <el-form-item prop="content" style="margin-bottom: 30px;">
-          <Tinymce ref="editor" v-model="postForm.content" :height="400" />
+          <!-- <Tinymce ref="editor" v-model="postForm.content" :height="400" /> -->
+          <mavon-editor
+            ref="md"
+            v-model="postForm.content"
+            class="mavonBox"
+            code-style="atom-one-dark"
+            @imgAdd="imgAddHandle"
+            @imgDel="imgDelHandle"
+          />
+
         </el-form-item>
 
         <el-form-item style="margin-bottom: 30px;">
@@ -96,15 +105,26 @@
 </template>
 
 <script>
-import Tinymce from '@/components/Tinymce'
+// import Tinymce from '@/components/Tinymce'
 import Upload from '@/components/Upload/SingleImage3'
 import MDinput from '@/components/MDinput'
 import Sticky from '@/components/Sticky' // 粘性header组件
 import { validURL } from '@/utils/validate'
-import { fetchArticle, crtArticle } from '@/api/article'
+import {
+  getArticle,
+  crtArticle,
+  updateArticle,
+  uploadImg
+} from '@/api/article'
 import { searchUser } from '@/api/remote-search'
 import Warning from './Warning'
-import { CommentDropdown, PlatformDropdown, SourceUrlDropdown } from './Dropdown'
+import {
+  CommentDropdown,
+  PlatformDropdown,
+  SourceUrlDropdown
+} from './Dropdown'
+import 'mavon-editor/dist/css/index.css'
+// import { fromatDate } from '../../../utils'
 
 const defaultForm = {
   status: 'draft',
@@ -124,7 +144,7 @@ const defaultForm = {
 
 export default {
   name: 'ArticleDetail',
-  components: { Tinymce, MDinput, Upload, Sticky, Warning, CommentDropdown, PlatformDropdown, SourceUrlDropdown },
+  components: { MDinput, Upload, Sticky, Warning, CommentDropdown, PlatformDropdown, SourceUrlDropdown },
   props: {
     isEdit: {
       type: Boolean,
@@ -172,6 +192,7 @@ export default {
       inputValue: '',
       tagArr: [], // 用于显示
       userListOptions: [],
+      img_file: {},
       rules: {
         title: [{ validator: validateRequire }],
         author: [{ required: true, message: '请输入作者名字', trigger: 'blur' }],
@@ -211,6 +232,7 @@ export default {
   created() {
     if (this.isEdit) {
       const id = this.$route.params && this.$route.params.id
+      // console.log(id, 5e3)
       this.fetchData(id)
     }
 
@@ -239,18 +261,20 @@ export default {
       this.inputValue = ''
     },
     fetchData(id) {
-      fetchArticle(id).then(response => {
+      getArticle(id).then(response => {
+        this.tagArr = response.data.tags.split(',')
+        response.data.createTime = new Date(response.data.createTime)
         this.postForm = response.data
 
         // just for test
-        this.postForm.title += `   Article Id:${this.postForm.id}`
-        this.postForm.subtitle += `   Article Id:${this.postForm.id}`
+        // this.postForm.title += `   Article Id:${this.postForm.id}`
+        // this.postForm.subtitle += `   Article Id:${this.postForm.id}`
 
-        // set tagsview title
-        this.setTagsViewTitle()
+        // // set tagsview title
+        // this.setTagsViewTitle()
 
-        // set page title
-        this.setPageTitle()
+        // // set page title
+        // this.setPageTitle()
       }).catch(err => {
         console.log(err)
       })
@@ -264,20 +288,27 @@ export default {
       const title = 'Edit Article'
       document.title = `${title} - ${this.postForm.id}`
     },
+    imgAddHandle(fileName, file) {
+      console.log(fileName, file)
+      this.img_file[fileName] = file
+      var formData = new FormData()
+      formData.append('file', file)
+      console.log(formData, '上车前')
+      uploadImg(formData).then(res => {
+        console.log(res, 'imgAddHandle')
+        this.$refs.md.$img2Url(fileName, res.data.url)
+      })
+    },
+    imgDelHandle(pos) {
+      delete this.img_file[pos]
+    },
     submitForm() {
       console.log(this.postForm)
       this.$refs.postForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$notify({
-            title: '成功',
-            message: '发布文章成功',
-            type: 'success',
-            duration: 2000
-          })
           this.postForm.status = 'published'
-          this.loading = false
-          this.sendAdd()
+          this.isEdit ? this.update() : this.sendAdd()
         } else {
           console.log('error submit!!')
           return false
@@ -287,7 +318,28 @@ export default {
     sendAdd() {
       crtArticle(this.postForm).then(res => {
         console.log(res, 666)
+        this.notify()
       })
+    },
+    update() {
+      updateArticle(this.postForm).then(res => {
+        console.log(res, 987)
+        this.notify()
+      })
+    },
+    changeTime(val) {
+      console.log(this.postForm.createTime)
+      console.log(111, val)
+    },
+    notify(msg) {
+      this.$notify({
+        title: '成功',
+        message: '发布文章成功',
+        type: 'success',
+        duration: 2000
+      })
+      this.loading = false
+      this.$router.push({ path: '/example/list', query: { reload: this.$route.query.page }})
     },
     draftForm() {
       if (this.postForm.content.length === 0 || this.postForm.title.length === 0) {

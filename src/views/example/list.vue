@@ -9,9 +9,9 @@
 
       <el-table-column min-width="300px" label="标题">
         <template slot-scope="{row}">
-          <router-link :to="'/example/edit/'+row.id" class="link-type">
+          <a href="javascript:;" class="link-type" @click="toEdit(row.id)">
             <span>{{ row.title }}</span>
-          </router-link>
+          </a>
         </template>
       </el-table-column>
 
@@ -27,13 +27,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column width="100px" label="标签">
+      <el-table-column width="160px" align="center" label="标签">
         <template slot-scope="scope">
-          <!-- <svg-icon v-for="n in (scope.row.tags.split(','))" :key="n" icon-class="star" class="meta-item__icon" /> -->
           <el-tag
             v-for="tag in scope.row.tags.split(',')"
             :key="`item_${tag}`"
-            :disable-transitions="false"
+            style="margin-left:5px"
+            :disable-transitions="true"
           >
             {{ tag }}
           </el-tag>
@@ -50,26 +50,45 @@
 
       <el-table-column align="center" label="操作" width="120">
         <template slot-scope="scope">
-          <router-link :to="'/example/edit/'+scope.row.id">
+          <a href="javascript:;" @click="toEdit(scope.row.id)">
             <el-button type="primary" size="small" icon="el-icon-edit">
               编辑
             </el-button>
-          </router-link>
+          </a>
         </template>
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+    <div class="pagination-container">
+      <el-pagination
+        background
+        layout="prev, pager, next, jumper"
+        :hide-on-single-page="true"
+        :page-count="total"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import { articleList } from '@/api/article'
-import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
+// import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
 
 export default {
   name: 'ArticleList',
-  components: { Pagination },
+  // components: { Pagination },
+  beforeRouteEnter(to, from, next) {
+    // 修改文章刷新数据
+    next(vm => {
+      const query = vm.$route.query
+      if (query && query.reload && from.name && !vm._data.isLoadData) {
+        vm.listQuery.page = query.reload
+        console.log(vm._data, 1213)
+        vm.getList()
+      }
+    })
+  },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -82,16 +101,19 @@ export default {
   },
   data() {
     return {
+      isLoadData: false,
       list: null,
       total: 0,
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20
+        limit: 2
       }
     }
   },
   created() {
+    console.log(this.isLoadData, 656)
+    this.isLoadData = true
     this.getList()
   },
   methods: {
@@ -107,6 +129,14 @@ export default {
       //   this.total = response.data.total
       //   this.listLoading = false
       // })
+    },
+    handleCurrentChange(val) {
+      this.listQuery.page = val
+      this.getList()
+    },
+    toEdit(id) {
+      this.isLoadData = false
+      this.$router.push(`/example/edit/${id}?page=${this.listQuery.page}`)
     }
   }
 }

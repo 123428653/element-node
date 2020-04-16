@@ -7,7 +7,8 @@ export function getToken() {
 }
 
 export function setToken(token) {
-  return Cookies.set(TokenKey, token)
+  var h = +(1 / 24).toFixed(5) // 按小时计算
+  return Cookies.set(TokenKey, token, { expires: h })
 }
 
 export function removeToken() {

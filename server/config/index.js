@@ -2,9 +2,9 @@ const config = {
   // 服务器端口
   port: 3000,
   database: {
-    database: 'vpn_admin_log',
+    database: 'element-node',
     username: 'root',
-    password: '',
+    password: '123456',
     port: '3306',
     host: 'localhost'
   }

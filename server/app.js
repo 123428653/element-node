@@ -85,7 +85,7 @@ app.use(koaBody({
   secret: 'log_token'
 }).unless({
   // 设置不需要验证token的白名单
-  path: [/\/user\/register/, /\/user\/login/]
+  path: [/\/api\/user\/register/, /\/api\/user\/login/]
 }))
 .use(logger)
 .use(router.routes())
