@@ -3,9 +3,9 @@
     <el-form ref="postForm" :model="postForm" :rules="rules" class="form-container">
 
       <sticky :z-index="10" :class-name="'sub-navbar '+postForm.status">
-        <CommentDropdown v-model="postForm.comment_disabled" />
-        <PlatformDropdown v-model="postForm.platforms" />
-        <SourceUrlDropdown v-model="postForm.source_uri" />
+        <!-- <CommentDropdown v-model="postForm.comment_disabled" /> -->
+        <!-- <PlatformDropdown v-model="postForm.platforms" /> -->
+        <!-- <SourceUrlDropdown v-model="postForm.source_uri" /> -->
         <el-button v-loading="loading" style="margin-left: 10px;" type="success" @click="submitForm">
           发布
         </el-button>
@@ -16,7 +16,7 @@
 
       <div class="createPost-main-container">
         <el-row>
-          <Warning />
+          <!-- <Warning /> -->
 
           <el-col :span="24">
             <el-form-item style="margin-bottom: 40px;" prop="title">
@@ -88,6 +88,7 @@
           <mavon-editor
             ref="md"
             v-model="postForm.content"
+            style="z-index:9"
             class="mavonBox"
             code-style="atom-one-dark"
             @imgAdd="imgAddHandle"
@@ -109,7 +110,7 @@
 import Upload from '@/components/Upload/SingleImage3'
 import MDinput from '@/components/MDinput'
 import Sticky from '@/components/Sticky' // 粘性header组件
-import { validURL } from '@/utils/validate'
+// import { validURL } from '@/utils/validate'
 import {
   getArticle,
   crtArticle,
@@ -117,12 +118,12 @@ import {
   uploadImg
 } from '@/api/article'
 import { searchUser } from '@/api/remote-search'
-import Warning from './Warning'
-import {
-  CommentDropdown,
-  PlatformDropdown,
-  SourceUrlDropdown
-} from './Dropdown'
+// import Warning from './Warning'
+// import {
+//   CommentDropdown,
+//   PlatformDropdown,
+//   SourceUrlDropdown
+// } from './Dropdown'
 import 'mavon-editor/dist/css/index.css'
 // import { fromatDate } from '../../../utils'
 
@@ -144,7 +145,7 @@ const defaultForm = {
 
 export default {
   name: 'ArticleDetail',
-  components: { MDinput, Upload, Sticky, Warning, CommentDropdown, PlatformDropdown, SourceUrlDropdown },
+  components: { MDinput, Upload, Sticky/* , Warning, CommentDropdown, PlatformDropdown, SourceUrlDropdown */ },
   props: {
     isEdit: {
       type: Boolean,
@@ -159,21 +160,21 @@ export default {
         callback()
       }
     }
-    const validateSourceUri = (rule, value, callback) => {
-      if (value) {
-        if (validURL(value)) {
-          callback()
-        } else {
-          this.$message({
-            message: '外链url填写不正确',
-            type: 'error'
-          })
-          callback(new Error('外链url填写不正确'))
-        }
-      } else {
-        callback()
-      }
-    }
+    // const validateSourceUri = (rule, value, callback) => {
+    //   if (value) {
+    //     if (validURL(value)) {
+    //       callback()
+    //     } else {
+    //       this.$message({
+    //         message: '外链url填写不正确',
+    //         type: 'error'
+    //       })
+    //       callback(new Error('外链url填写不正确'))
+    //     }
+    //   } else {
+    //     callback()
+    //   }
+    // }
     const validateTags = (rule, value, callback) => {
       if (!value) {
         // this.$message({
@@ -200,8 +201,8 @@ export default {
         tags: [{ validator: validateTags }],
         subtitle: [{ required: true, message: '请输入摘要', trigger: 'blur' }],
         // thumbnail: [{ validator: validateRequire }],
-        content: [{ validator: validateRequire, trigger: 'blur' }],
-        source_uri: [{ validator: validateSourceUri, trigger: 'blur' }]
+        content: [{ validator: validateRequire, trigger: 'blur' }]
+        // source_uri: [{ validator: validateSourceUri, trigger: 'blur' }]
       },
       tempRoute: {}
     }
